@@ -1,12 +1,13 @@
 import tensorflow as tf
 from Stimulus_Layer import StimulusLayer
 from datetime import datetime
-
+#from FileLoader import load_data_from_file
 
 from tensorflow.keras import datasets, layers, models
 import matplotlib.pyplot as plt
 
 (train_images, train_labels), (test_images, test_labels) = datasets.cifar10.load_data()
+#(train_images, train_labels), (test_images, test_labels) = load_data_from_file('.keras\datasets\cifar-10-batches-py')
 print(train_images)
 print(train_labels)
 print(test_images)
@@ -34,7 +35,7 @@ model = models.Sequential()
 
 model.add(layers.Conv2D(32, (3, 3), activation='relu',input_shape=(32, 32, 3)))
 model.add(layers.MaxPooling2D((2, 2)))
-#model.add(StimulusLayer(15))
+#model.add(StimulusLayer())
 model.add(layers.Conv2D(64, (3, 3), activation='relu'))
 model.add(layers.MaxPooling2D((2, 2)))
 model.add(layers.Conv2D(64, (3, 3), activation='relu'))
