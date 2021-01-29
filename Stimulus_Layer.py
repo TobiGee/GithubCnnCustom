@@ -1,53 +1,54 @@
 import tensorflow as tf
-from tensorflow.keras import backend as backend
+import sys
+from tensorflow.keras import backend as K
+from tensorflow.python.ops import array_ops
+
+@tf.function
+def in_Range(range, value):
+    return  tf.math.logical_and(tf.math.greater_equal(value, -range), tf.math.less_equal(value, range))
 
 class StimulusLayer(tf.keras.layers.Layer):
-  def __init__(self, threshold=20, range=0.5):
+  def __init__(self, units=32, threshold=20., range=0.1):
     super(StimulusLayer, self).__init__()
     self.threshold = threshold
     self.range = range
-
+    self.units = units
 
   def build(self, input_shape):
-  
-    # inital comparison layer
-    self.last_layer = input_shape
-    # counting repeats
-    self.counter_layer = input_shape
+    w_init = tf.initializers.Zeros()
+    # Bekannte Dimensionen finden
+    dims = []
+    dims.append(self.units)
+    for dim in input_shape:
+        if dim is not None:
+            dims.append(dim)
     
+    # inital comparison layer
+    self.last_inputs = tf.Variable(initial_value=w_init(shape=dims, dtype='float32'), shape=input_shape,  trainable=False)
+    self.counter_layer = tf.Variable(initial_value=w_init(shape=dims, dtype='float32'), shape=input_shape, trainable=False)
 
   def call(self, inputs, training=None):
-    # reset mit 0
-    # inkrement mit 1 + 1/(current_counter_value)
-    # test as is
-    # test to ignore neurons that are clo
+    trainings_outputs = []
     
-    resistant_input = self.resistant_inputs(inputs)
-    resistent_input = resistent_input
+    if training:
+        if tf.shape(inputs)[0] != tf.shape(self.last_inputs)[0]:
+            self.last_inputs.assign(tf.zeros(K.shape(inputs)))
+            self.counter_layer.assign(tf.zeros(K.shape(inputs)))
+        
+        self.counter_layer.assign(tf.where(in_Range(self.range, inputs - self.last_inputs), tf.math.add(self.counter_layer, 1), tf.math.multiply(self.counter_layer, 0)))
+        self.counter_layer.assign(tf.where(tf.math.greater_equal(self.counter_layer, 2.*self.threshold), 0., self.counter_layer))
+        
+        self.last_inputs.assign(inputs)
+        trainings_outputs = tf.where(tf.math.greater_equal(self.counter_layer, self.threshold), 0., inputs)
+    
+    return K.in_train_phase(trainings_outputs, inputs, training=training)
+    
+#local test
 
-    self.last_layer = inputs
-    
-    return backend.in_train_phase(resistant_input, inputs, training=training)
+#x = tf.ones((2, 2, 2, 2))
+#layer = StimulusLayer()
+#epoch = 23
 
-  def resistant_inputs(self, inputs):
-    temp = (inputs - self.last_layer)
-    
-    for index, value in enumerate(temp):
-        if self.in_Range(value):
-            self.counter_layer[index] += 1
-        else:
-            self.counter_layer[index] = 0
-      
-    for index, value in enumerate(self.counter_layer):
-        if value >= self.threshold:
-            inputs[index] = 0
-            
-    return inputs
-
-  def in_Range(value):
-    if value > -self.range and value < self.range:
-        return true
-    
-    return false
-    
-layer = StimulusLayer()
+#for i in range(epoch):
+#    x = layer(x)
+#    print(x)
