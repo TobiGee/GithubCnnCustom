@@ -2,6 +2,7 @@ import tensorflow as tf
 from Stimulus_Layer import StimulusLayer
 from datetime import datetime
 
+
 from tensorflow.keras import datasets, layers, models
 import matplotlib.pyplot as plt
 
@@ -50,9 +51,10 @@ model.summary()
 model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
-
+log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 print("Current Time =", datetime.now().strftime("%H:%M:%S"))
-history = model.fit(train_images, train_labels, epochs=30,validation_data=(test_images, test_labels))
+history = model.fit(train_images, train_labels, epochs=30,validation_data=(test_images, test_labels),callbacks=[tensorboard_callback])
 print("Current Time =", datetime.now().strftime("%H:%M:%S"))
 
 plt.plot(history.history['accuracy'], label='accuracy')
